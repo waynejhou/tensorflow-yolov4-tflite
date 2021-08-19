@@ -44,28 +44,37 @@ def save_trt():
   if FLAGS.quantize_mode == 'int8':
     conversion_params = trt.DEFAULT_TRT_CONVERSION_PARAMS._replace(
       precision_mode=trt.TrtPrecisionMode.INT8,
-      max_workspace_size_bytes=4000000000,
-      use_calibration=True,
-      max_batch_size=8)
+      # max_workspace_size_bytes=4000000000,
+      use_calibration=False,
+      # max_batch_size=8
+      )
     converter = trt.TrtGraphConverterV2(
       input_saved_model_dir=FLAGS.weights,
       conversion_params=conversion_params)
-    converter.convert(calibration_input_fn=representative_data_gen)
+    converter.convert(
+      #calibration_input_fn=representative_data_gen
+      )
   elif FLAGS.quantize_mode == 'float16':
     conversion_params = trt.DEFAULT_TRT_CONVERSION_PARAMS._replace(
       precision_mode=trt.TrtPrecisionMode.FP16,
-      max_workspace_size_bytes=4000000000,
-      max_batch_size=8)
+      max_workspace_size_bytes = (1 << 32),
+      # max_workspace_size_bytes=4000000000,
+      # max_batch_size=8
+      )
     converter = trt.TrtGraphConverterV2(
-      input_saved_model_dir=FLAGS.weights, conversion_params=conversion_params)
+      input_saved_model_dir=FLAGS.weights,
+      conversion_params=conversion_params)
     converter.convert()
   else :
     conversion_params = trt.DEFAULT_TRT_CONVERSION_PARAMS._replace(
       precision_mode=trt.TrtPrecisionMode.FP32,
-      max_workspace_size_bytes=4000000000,
-      max_batch_size=8)
+      max_workspace_size_bytes = (1 << 32),
+      # max_workspace_size_bytes=4000000000,
+      # max_batch_size=8
+      )
     converter = trt.TrtGraphConverterV2(
-      input_saved_model_dir=FLAGS.weights, conversion_params=conversion_params)
+      input_saved_model_dir=FLAGS.weights,
+      conversion_params=conversion_params)
     converter.convert()
 
   # converter.build(input_fn=representative_data_gen)
