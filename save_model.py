@@ -1,10 +1,12 @@
 import tensorflow as tf
+tf.keras.backend.set_learning_phase(0)
 from absl import app, flags, logging
 from absl.flags import FLAGS
 from core.yolov4 import YOLO, decode, filter_boxes
 import core.utils as utils
 from core.config import cfg
 
+flags.DEFINE_string('names', cfg.YOLO.CLASSES, 'path to weights file')
 flags.DEFINE_string('weights', './data/yolov4.weights', 'path to weights file')
 flags.DEFINE_string('output', './checkpoints/yolov4-416', 'path to output')
 flags.DEFINE_boolean('tiny', False, 'is yolo-tiny or not')
@@ -46,11 +48,13 @@ def save_tf():
     boxes, pred_conf = filter_boxes(pred_bbox, pred_prob, score_threshold=FLAGS.score_thres, input_shape=tf.constant([FLAGS.input_size, FLAGS.input_size]))
     pred = tf.concat([boxes, pred_conf], axis=-1)
   model = tf.keras.Model(input_layer, pred)
+  for l in model.layers: l.trainable = False
   utils.load_weights(model, FLAGS.weights, FLAGS.model, FLAGS.tiny)
   model.summary()
   model.save(FLAGS.output)
 
 def main(_argv):
+  cfg.YOLO.CLASSES = FLAGS.names
   save_tf()
 
 if __name__ == '__main__':
