@@ -58,11 +58,13 @@ def save_trt():
     conversion_params = trt.DEFAULT_TRT_CONVERSION_PARAMS._replace(
       precision_mode=trt.TrtPrecisionMode.FP16,
       max_workspace_size_bytes = (1 << 32),
+      
       # max_workspace_size_bytes=4000000000,
       # max_batch_size=8
       )
     converter = trt.TrtGraphConverterV2(
       input_saved_model_dir=FLAGS.weights,
+      use_dynamic_shape=False,
       conversion_params=conversion_params)
     converter.convert()
   else :
@@ -76,8 +78,10 @@ def save_trt():
       input_saved_model_dir=FLAGS.weights,
       conversion_params=conversion_params)
     converter.convert()
-
-  # converter.build(input_fn=representative_data_gen)
+  def input_fn():
+    yield (np.random.randint(0, 256, (1, 1, 416, 416, 3))/255).astype(np.float32)
+  print(input_fn)
+  # converter.build(input_fn)
   converter.save(output_saved_model_dir=FLAGS.output)
   print('Done Converting to TF-TRT')
 
