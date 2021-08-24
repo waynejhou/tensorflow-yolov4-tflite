@@ -48,7 +48,13 @@ def save_tf():
     boxes, pred_conf = filter_boxes(pred_bbox, pred_prob, score_threshold=FLAGS.score_thres, input_shape=tf.constant([FLAGS.input_size, FLAGS.input_size]))
     pred = tf.concat([boxes, pred_conf], axis=-1)
   model = tf.keras.Model(input_layer, pred)
-  for l in model.layers: l.trainable = False
+  for l in model.layers:
+    l.trainable = False
+    #print(dir(l.input))
+    if "set_shape" in dir(l.input) and l.input.shape[0] == None:
+      l.input.set_shape((1, *l.input.shape[1:]))
+    #print(l.input.shape)
+    #exit(1)
   utils.load_weights(model, FLAGS.weights, FLAGS.model, FLAGS.tiny)
   model.summary()
   model.save(FLAGS.output)
