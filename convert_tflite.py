@@ -63,8 +63,9 @@ def demo():
 
   interpreter.set_tensor(input_details[0]['index'], input_data)
   interpreter.invoke()
-  output_data = [interpreter.get_tensor(output_details[i]['index']) for i in range(len(output_details))]
-
+  #output_data = [interpreter.get_tensor(output_details[i]['index']) for i in range(len(output_details))]
+  output_data = output_details
+  print("demo output_data")
   print(output_data)
 
 def main(_argv):
