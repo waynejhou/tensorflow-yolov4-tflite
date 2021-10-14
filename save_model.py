@@ -1,5 +1,6 @@
 import tensorflow as tf
-tf.keras.backend.set_learning_phase(0)
+from tensorflow.keras import backend as K
+K.set_learning_phase(0)
 from absl import app, flags, logging
 from absl.flags import FLAGS
 from core.yolov4 import YOLO, decode, filter_boxes
@@ -40,13 +41,18 @@ def save_tf():
         output_tensors = decode(fm, FLAGS.input_size // 32, NUM_CLASS, STRIDES, ANCHORS, i, XYSCALE, FLAGS.framework)
       bbox_tensors.append(output_tensors[0])
       prob_tensors.append(output_tensors[1])
-  pred_bbox = tf.concat(bbox_tensors, axis=1)
-  pred_prob = tf.concat(prob_tensors, axis=1)
+  pred_bbox = tf.concat(bbox_tensors, axis=1, name="concat_bbox")
+  pred_prob = tf.concat(prob_tensors, axis=1, name="concat_prob")
+  print(f"framework: {FLAGS.framework}")
   if FLAGS.framework == 'tflite':
     pred = (pred_bbox, pred_prob)
   else:
     boxes, pred_conf = filter_boxes(pred_bbox, pred_prob, score_threshold=FLAGS.score_thres, input_shape=tf.constant([FLAGS.input_size, FLAGS.input_size]))
-    pred = tf.concat([boxes, pred_conf], axis=-1)
+    pred = tf.concat([boxes, pred_conf], axis=-1, name="concat_pred",)
+    # pred.type_spec.name = "abac"
+    print(pred)
+    print(pred.type_spec)
+    print(dir(pred.type_spec))
   model = tf.keras.Model(input_layer, pred)
   for l in model.layers:
     l.trainable = False
@@ -56,8 +62,8 @@ def save_tf():
     #print(l.input.shape)
     #exit(1)
   utils.load_weights(model, FLAGS.weights, FLAGS.model, FLAGS.tiny)
-  model.summary()
-  model.save(FLAGS.output)
+  # model.summary()
+  model.save(FLAGS.output, signatures={"pred", pred})
 
 def main(_argv):
   cfg.YOLO.CLASSES = FLAGS.names
