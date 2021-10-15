@@ -23,6 +23,7 @@ def save_tf():
   feature_maps = YOLO(input_layer, NUM_CLASS, FLAGS.model, FLAGS.tiny)
   bbox_tensors = []
   prob_tensors = []
+  print(feature_maps)
   if FLAGS.tiny:
     for i, fm in enumerate(feature_maps):
       if i == 0:
@@ -62,8 +63,8 @@ def save_tf():
     #print(l.input.shape)
     #exit(1)
   utils.load_weights(model, FLAGS.weights, FLAGS.model, FLAGS.tiny)
-  # model.summary()
-  model.save(FLAGS.output, signatures={"pred", pred})
+  model.summary()
+  model.save(FLAGS.output)
 
 def main(_argv):
   cfg.YOLO.CLASSES = FLAGS.names
